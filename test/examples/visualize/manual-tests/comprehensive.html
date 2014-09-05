@@ -139,7 +139,7 @@ Keen.ready(function() {
     </div>
   </div>
    */
-  var makeNewCell = function(parent, lib) {
+  var makeNewCell = function(parent, lib, index) {
     var row = document.createElement('div');
     row.innerHTML = [
       '<div class="chart-wrapper">',
@@ -157,6 +157,7 @@ Keen.ready(function() {
     row.className = 'row';
     cell.className = 'col-sm-12';
     row.querySelector('.chart-stage').appendChild(cell);
+    row.querySelector('.chart-title').innerHTML = lib.chartTypes[index];
     parent.appendChild(row);
     return cell;
   };
@@ -168,7 +169,7 @@ Keen.ready(function() {
       columns.push(column);
       for(var x = 0; x < libraries[i].chartTypes.length; x++) {
         this.data = generateRandomData(res);
-        var el = makeNewCell(columns[i], libraries[i]);
+        var el = makeNewCell(columns[i], libraries[i], x);
 
         new Keen.Visualization(res, el, {
           library: libraries[i].name,

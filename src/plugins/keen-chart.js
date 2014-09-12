@@ -167,6 +167,14 @@
     };
 
     var chartTypes = ['Line', 'Bar', 'Radar', 'PolarArea', 'Pie', 'Doughnut'];
+    // var chartTypes = {
+    //   'areachart': 'area-spline',
+    //   'barchart': 'Bar',
+    //   'linechart': 'Line',
+    //   'piechart': 'Pie',
+    //   'donut': 'Doughnut',
+    //   'Radar': 'Radar'
+    // };
     var charts = {};
 
     // Create chart types

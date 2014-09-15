@@ -111,8 +111,6 @@ Keen.Dataviz.prototype.setData = function(dataset, config) {
   }
 
   if(!config.chartType) {
-    // Set the visualization types this reqest can do.
-    this.setVizTypes();
     // Set the capable chart types and default type for this viz.
     this.setCapabilities(config);
   }
@@ -178,7 +176,12 @@ Keen.Dataviz.prototype.buildDefaultTitle = function() {
   })();
 };
 
-Keen.Dataviz.prototype.setVizTypes = function() {
+Keen.Dataviz.prototype.setCapabilities = function(config) {
+  var self = this,
+      capabilityMatrix = Keen.Visualization.libraries[config.library]['_capabilities'],
+      formatMatrix;
+
+  // Set the visualization types this reqest can do.
   if (this.dataset instanceof Keen.Request) {
     // Handle known scenarios
     this.isMetric = (typeof this.dataset.data.result === "number" || this.dataset.data.result === null) ? true : false,
@@ -188,26 +191,18 @@ Keen.Dataviz.prototype.setVizTypes = function() {
     this.is2xGroupBy = (this.dataset.queries[0].get('group_by') instanceof Array) ? true : false;
     this.isExtraction = (this.dataset.queries[0].analysis == 'extraction') ? true : false;
   } else {
-    this.isMetric = (typeof this.dataset.result === "number" || this.dataset.result === null) ? true : false
+    this.isMetric = (typeof this.dataset.result === "number" || this.dataset.result === null) ? true : false;
   }
-};
 
-Keen.Dataviz.prototype.setCapabilities = function(config) {
-  var self = this,
-      capabilityMatrix = Keen.Visualization.libraries[config.library]['_capabilities'],
-      // single-Metric
-      // single-Series
-      // multiple-metric
-      // multiple-series
-      formatMatrix = {
-        'single': this.isMetric, 
-        'categorical': !this.isInterval && this.isGroupBy,
-        'chronological': this.isInterval && !this.isGroupBy,
-        'cat-chronological': this.isInterval && this.isGroupBy,
-        'cat-ordinal' : this.isFunnel,
-        'cat-interval' : this.is2xGroupBy,
-        'extraction' : this.isExtraction
-      };
+  formatMatrix = {
+    'single': this.isMetric, 
+    'categorical': !this.isInterval && this.isGroupBy,
+    'chronological': this.isInterval && !this.isGroupBy,
+    'cat-chronological': this.isInterval && this.isGroupBy,
+    'cat-ordinal' : this.isFunnel,
+    'cat-interval' : this.is2xGroupBy,
+    'extraction' : this.isExtraction
+  };
 
   this.capabilities = [] || Keen.Visualization.libraries[config.library]['_capabilities'];
   _each(formatMatrix, function(format, name) {

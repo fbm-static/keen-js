@@ -110,13 +110,11 @@ Keen.Dataviz.prototype.setData = function(dataset, config) {
     this.data = (this.dataset instanceof Array) ? this.dataset[0] : this.dataset;
   }
 
-  // Set the visualization types this reqest can do.
-  this.setVizTypes();
-
-  // Set the capable chart types and default type for this viz.
   if(!config.chartType) {
+    // Set the visualization types this reqest can do.
+    this.setVizTypes();
+    // Set the capable chart types and default type for this viz.
     this.setCapabilities(config);
-
   }
 
   return this;
@@ -209,7 +207,7 @@ Keen.Dataviz.prototype.setCapabilities = function(config) {
         'cat-ordinal' : this.isFunnel,
         'cat-interval' : this.is2xGroupBy,
         'extraction' : this.isExtraction
-      }
+      };
 
   this.capabilities = [] || Keen.Visualization.libraries[config.library]['_capabilities'];
   _each(formatMatrix, function(format, name) {

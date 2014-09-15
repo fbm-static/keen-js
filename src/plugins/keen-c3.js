@@ -78,9 +78,9 @@
 
   var chartTypes = ['spline', 'pie', 'donut', 'area-spline', 'bar', 'scatter'];
   var capabilities = {
-    group: ['donut', 'pie', 'bar', 'scatter'],
-    single: ['area-spline'],
-    multiple: ['spline']
+    'categorical': ['donut', 'pie', 'bar', 'scatter'],
+    'chronological': ['spline'],
+    'cat-chronological': ['area-spline']
   };
 
   // var chartTypes = {

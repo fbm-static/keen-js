@@ -202,11 +202,14 @@ Keen.Dataviz.prototype.setCapabilities = function(config) {
       // multiple-metric
       // multiple-series
       formatMatrix = {
-        metric: this.isMetric, 
-        group: !this.isInterval && this.isGroupBy,
-        single: this.isInterval && !this.isGroupBy,
-        multiple: this.isInterval && this.isGroupBy
-      };
+        'single': this.isMetric, 
+        'categorical': !this.isInterval && this.isGroupBy,
+        'chronological': this.isInterval && !this.isGroupBy,
+        'cat-chronological': this.isInterval && this.isGroupBy,
+        'cat-ordinal' : this.isFunnel,
+        'cat-interval' : this.is2xGroupBy,
+        'extraction' : this.isExtraction
+      }
 
   this.capabilities = [] || Keen.Visualization.libraries[config.library]['_capabilities'];
   _each(formatMatrix, function(format, name) {

@@ -83,7 +83,7 @@ Keen.Visualization = function(dataset, el, config){
 // START NEW CLEAN API
 // *******************
 
-Keen.Dataviz = function(chartType, config) {
+Keen.Dataviz = function(chartType) {
   this.config = {};
   if (chartType) {
     this.config['chartType'] = chartType;

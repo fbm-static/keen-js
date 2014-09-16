@@ -190,33 +190,3 @@
     return this;
   };
 
-
-  // Private
-  // --------------------------------
-
-  function _build_timezone_offset(){
-    return new Date().getTimezoneOffset() * -60;
-  };
-
-  function _build_query_string(params){
-    var query = [];
-    for (var key in params) {
-      if (params[key]) {
-        var value = params[key];
-        if (Object.prototype.toString.call(value) !== '[object String]') {
-          value = JSON.stringify(value);
-        }
-        value = encodeURIComponent(value);
-        query.push(key + '=' + value);
-      }
-    }
-    return "&" + query.join('&');
-  };
-
-  function _send_query(url, success, error){
-    if ((_type(XMLHttpRequest)==='Object'||_type(XMLHttpRequest)==='Function') && 'withCredentials' in new XMLHttpRequest()) {
-      _request.xhr.call(this, "GET", url, null, null, this.client.readKey, success, error);
-    } else {
-      _request.jsonp.call(this, url, this.client.readKey, success, error);
-    }
-  };

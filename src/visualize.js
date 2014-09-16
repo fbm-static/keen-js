@@ -76,7 +76,7 @@ function _build_visual(selector, config){
 // -------------------------------
 Keen.Visualization = function(dataset, el, config){
   var chartType = (config && config.chartType) ? config.chartType : null;
-  return new Keen.Dataviz(chartType).prepare(el).setData(dataset, config).setConfig(config).render(el);
+  return new Keen.Dataviz(chartType).prepare(el).data(dataset, config).setConfig(config).render(el);
 };
 
 // *******************
@@ -96,9 +96,9 @@ Keen.Dataviz = function(chartType) {
 
 _extend(Keen.Dataviz.prototype, Events);
 
-Keen.Dataviz.prototype.setData = function(dataset, config) {
+Keen.Dataviz.prototype.data = function(dataset, config) {
   if (!dataset) {
-    throw new Error('You must pass data to the setData() function.');
+    throw new Error('You must pass data to the data() function.');
   }
   this.dataset = dataset;
 
@@ -120,7 +120,7 @@ Keen.Dataviz.prototype.setData = function(dataset, config) {
 
 Keen.Dataviz.prototype.setConfig = function(config) {
   if (!this.dataset) {
-    throw new Error('You must provide data to a Keen.Dataviz object using the setData() function before calling config() on it.');
+    throw new Error('You must provide data to a Keen.Dataviz object using the data() function before calling config() on it.');
   }
 
   // Backwoods cloning facility
@@ -470,6 +470,7 @@ Keen.Visualization.extend = function(protoProps, staticProps){
   } else {
     Visualization = function(){ return parent.apply(this, arguments); };
   }
+
   _extend(Visualization, parent, staticProps);
   var Surrogate = function(){ this.constructor = Visualization; };
   Surrogate.prototype = parent.prototype;

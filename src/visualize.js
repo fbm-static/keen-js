@@ -4,25 +4,6 @@
 * ----------------------
 */
 
-Keen.Spinner.defaults = {
-  lines: 10, // The number of lines to draw
-  length: 8, // The length of each line
-  width: 3, // The line thickness
-  radius: 10, // The radius of the inner circle
-  corners: 1, // Corner roundness (0..1)
-  rotate: 0, // The rotation offset
-  direction: 1, // 1: clockwise, -1: counterclockwise
-  color: '#4d4d4d', // #rgb or #rrggbb or array of colors
-  speed: 1, // Rounds per second
-  trail: 60, // Afterglow percentage
-  shadow: false, // Whether to render a shadow
-  hwaccel: false, // Whether to use hardware acceleration
-  className: 'keen-spinner', // The CSS class to assign to the spinner
-  zIndex: 2e9, // The z-index (defaults to 2000000000)
-  top: '50%', // Top position relative to parent
-  left: '50%' // Left position relative to parent
-};
-
 Keen.prototype.draw = function(query, el, config) {
   // Find DOM element, set height, build spinner
   var config = config || {};
@@ -68,27 +49,41 @@ Keen.Request.prototype.draw = function(selector, config) {
 // -------------------------------
 Keen.Visualization = function(dataset, el, config){
   var chartType = (config && config.chartType) ? config.chartType : null;
-  return new Keen.Dataviz(chartType).prepare(el).data(dataset, config).setConfig(config).render(el);
+  return new Keen.Dataviz(chartType)
+                 .prepare(el)
+                 .data(dataset, config)
+                 .config(config)
+                 .render(el);
 };
 
 // *******************
 // START NEW CLEAN API
 // *******************
 
-Keen.Dataviz = function(chartType) {
+Keen.Dataviz = function() {
   this.config = {};
-  if (chartType) {
-    this.config['chartType'] = chartType;
-  }
   this.dataformSchema = {
     collection: 'result',
     select: true
   };
+
+  this.dataset = { 
+    parse: function(){ console.log("demo"); },
+    table: [["date", "value"],[new Date().toISOString(), 54343]]
+  }; // => new Dataset()
+  
+  this.view = {};
+  return this._prepare();
 };
 
 _extend(Keen.Dataviz.prototype, Events);
+Keen.Dataviz.prototype.chartType = function(type) {
+  if(type) { this.config}
+};
 
 Keen.Dataviz.prototype.data = function(dataset, config) {
+  var self = this;
+
   if (!dataset) {
     throw new Error('You must pass data to the data() function.');
   }
@@ -107,35 +102,26 @@ Keen.Dataviz.prototype.data = function(dataset, config) {
     this.setCapabilities(config);
   }
 
-  return this;
+  return this._configure()
+             ._dataform()
+             ._setSpecificChartOptions()
+             .run(function() {
+               this.config.data = (this.data) ? _transform.call(this.config, this.data, this.dataformSchema) : [];
+             }.bind(this))
+             ._applyColorMapping();
 };
 
-Keen.Dataviz.prototype.setConfig = function(config) {
-  if (!this.dataset) {
-    throw new Error('You must provide data to a Keen.Dataviz object using the data() function before calling config() on it.');
-  }
-
+Keen.Dataviz.prototype._configure = function(config) {
   // Backwoods cloning facility
   var defaults = JSON.parse(JSON.stringify(Keen.Visualization.defaults));
   this.config = _extend(defaults, config);
 
   // Build default title if necessary to do so.
-  if (!this.config.title && this.dataset instanceof Keen.Request) {
-    this.buildDefaultTitle();
-  }
-
-  this.setDataformSchema();
-
-  this.setSpecificChartOptions();
-
-  this.config['data'] = (this.data) ? _transform.call(this.config, this.data, this.dataformSchema) : [];
-
-  this.applyColorMapping();
-
-  return this;
+  return !this.config.title && this.dataset instanceof Keen.Request ? 
+            this._buildDefaultTitle() : this;
 };
 
-Keen.Dataviz.prototype.prepare = function(el) {
+Keen.Dataviz.prototype._prepare = function(el) {
   this.config.el = el;
   this.config.el.innerHTML = "";
   var placeholder = document.createElement("div");
@@ -150,7 +136,7 @@ Keen.Dataviz.prototype.prepare = function(el) {
   return this;
 };
 
-Keen.Dataviz.prototype.buildDefaultTitle = function() {
+Keen.Dataviz.prototype._buildDefaultTitle = function() {
   var self = this;
   this.config.title = (function(){
     var analysis = self.dataset.queries[0].analysis.replace("_", " "),
@@ -166,6 +152,7 @@ Keen.Dataviz.prototype.buildDefaultTitle = function() {
     }
     return output;
   })();
+  return this;
 };
 
 Keen.Dataviz.prototype.setCapabilities = function(config) {
@@ -202,6 +189,8 @@ Keen.Dataviz.prototype.setCapabilities = function(config) {
       self.capabilities = capabilityMatrix[name];
     }
   });
+
+  return this;
 
 };
 
@@ -241,6 +230,7 @@ Keen.Dataviz.prototype.setDataformSchema = function() {
       }
     }
   }
+  return this;
 };
 
 Keen.Dataviz.prototype.applyColorMapping = function() {
@@ -251,8 +241,8 @@ Keen.Dataviz.prototype.applyColorMapping = function() {
   if (this.config.colorMapping) {
 
     // Map to selected index
-    if (this.config['data'].schema.select && this.config['data'].table[0].length == 2) {
-      _each(this.config['data'].table, function(row, i){
+    if (this.config.data.schema.select && this.config.data.table[0].length == 2) {
+      _each(this.config.data.table, function(row, i){
         if (i > 0 && self.config.colorMapping[row[0]]) {
           self.config.colors.splice(i-1, 0, self.config.colorMapping[row[0]]);
         }
@@ -260,8 +250,8 @@ Keen.Dataviz.prototype.applyColorMapping = function() {
     }
 
     // Map to unpacked labels
-    if (this.config['data'].schema.unpack) { //  && this.config['data'].table[0].length > 2
-      _each(this.config['data'].table[0], function(cell, i){
+    if (this.config.data.schema.unpack) { //  && this.config['data'].table[0].length > 2
+      _each(this.config.data.table[0], function(cell, i){
         if (i > 0 && self.config.colorMapping[cell]) {
           self.config.colors.splice(i-1, 0, self.config.colorMapping[cell]);
         }
@@ -269,6 +259,7 @@ Keen.Dataviz.prototype.applyColorMapping = function() {
     }
 
   }
+  return this;
 };
 
 Keen.Dataviz.prototype.setSpecificChartOptions = function() {
@@ -304,6 +295,7 @@ Keen.Dataviz.prototype.setSpecificChartOptions = function() {
       };
     }
   }
+  return this;
 };
 
 Keen.Dataviz.prototype.render = function(el) {
@@ -343,30 +335,63 @@ Keen.Dataviz.prototype.remove = function() {
   }
 };
 
-// Visual defaults
-Keen.Visualization.defaults = {
-  library: 'google',
-  height: 400,
-  colors: [
-    "#00afd7",
-    "#f35757",
-    "#f0ad4e",
-    "#8383c6",
-    "#f9845b",
-    "#49c5b1",
-    "#2a99d1",
-    "#aacc85",
-    "#ba7fab"
-  ],
-  chartOptions: {}
+var baseVisualization = function(config){
+  var self = this;
+  _extend(self, config);
+
+  // Set default event handlers
+  self.on("error", function(){
+    var errorConfig, error;
+    errorConfig = Keen.utils.extend({
+      error: { message: arguments[0] }
+    }, config);
+    error = new Keen.Visualization.libraries['keen-io']['error'](errorConfig);
+  });
+  self.on("update", function(){
+    self.update.apply(this, arguments);
+  });
+  self.on("remove", function(){
+    self.remove.apply(this, arguments);
+  });
+
+  // Let's kick it off!
+  self.initialize();
+  Keen.Visualization.visuals.push(self);
 };
 
-// Collect and manage libraries
-Keen.Visualization.libraries = {};
-Keen.Visualization.dependencies = {
-  loading: 0,
-  loaded: 0,
-  urls: {}
+baseVisualization.prototype = {
+  initialize: function(){
+    // Set listeners and prepare data
+  },
+  render: function(){
+    // Build artifacts
+  },
+  update: function(){
+    // Handle data updates
+  },
+  remove: function(){
+    // Handle deletion
+  }
+};
+_extend(baseVisualization.prototype, Events);
+
+Keen.Visualization.find = function(target){
+  var el, match;
+  if (target) {
+    el = target.nodeName ? target : document.querySelector(target);
+    _each(Keen.Visualization.visuals, function(visual){
+      if (el == visual.el){
+        match = visual;
+        return false;
+      }
+    });
+    if (match) {
+      return match;
+    }
+    throw("Visualization not found");
+  } else {
+    return Keen.Visualization.visuals;
+  }
 };
 
 Keen.Visualization.register = function(name, methods, config){
@@ -412,47 +437,6 @@ Keen.Visualization.register = function(name, methods, config){
   }
 };
 
-Keen.Visualization.visuals = [];
-var baseVisualization = function(config){
-  var self = this;
-  _extend(self, config);
-
-  // Set default event handlers
-  self.on("error", function(){
-    var errorConfig, error;
-    errorConfig = Keen.utils.extend({
-      error: { message: arguments[0] }
-    }, config);
-    error = new Keen.Visualization.libraries['keen-io']['error'](errorConfig);
-  });
-  self.on("update", function(){
-    self.update.apply(this, arguments);
-  });
-  self.on("remove", function(){
-    self.remove.apply(this, arguments);
-  });
-
-  // Let's kick it off!
-  self.initialize();
-  Keen.Visualization.visuals.push(self);
-};
-
-baseVisualization.prototype = {
-  initialize: function(){
-    // Set listeners and prepare data
-  },
-  render: function(){
-    // Build artifacts
-  },
-  update: function(){
-    // Handle data updates
-  },
-  remove: function(){
-    // Handle deletion
-  }
-};
-_extend(baseVisualization.prototype, Events);
-
 Keen.Visualization.extend = function(protoProps, staticProps){
   var Visualization,
       parent = baseVisualization;
@@ -472,56 +456,6 @@ Keen.Visualization.extend = function(protoProps, staticProps){
   }
   Visualization.__super__ = parent.prototype;
   return Visualization;
-};
-
-var ErrorMessage = Keen.Visualization.extend({
-  initialize: function(){
-    var errorPlaceholder, errorMessage;
-
-    errorPlaceholder = document.createElement("div");
-    errorPlaceholder.className = "keen-error";
-    errorPlaceholder.style.borderRadius = "8px";
-    errorPlaceholder.style.height = this.height + "px";
-    errorPlaceholder.style.width = this.width + "px";
-
-    errorMessage = document.createElement("span");
-    errorMessage.style.color = "#ccc";
-    errorMessage.style.display = "block";
-    errorMessage.style.paddingTop = (this.height / 2 - 15) + "px";
-    errorMessage.style.fontFamily = "Helvetica Neue, Helvetica, Arial, sans-serif";
-    errorMessage.style.fontSize = "21px";
-    errorMessage.style.fontWeight = "light";
-    errorMessage.style.textAlign = "center";
-
-    errorMessage.innerHTML = this['error'].message;
-    errorPlaceholder.appendChild(errorMessage);
-
-    this.el.innerHTML = "";
-    this.el.appendChild(errorPlaceholder);
-  }
-});
-
-Keen.Visualization.register('keen-io', {
-  'error': ErrorMessage
-});
-
-Keen.Visualization.find = function(target){
-  var el, match;
-  if (target) {
-    el = target.nodeName ? target : document.querySelector(target);
-    _each(Keen.Visualization.visuals, function(visual){
-      if (el == visual.el){
-        match = visual;
-        return false;
-      }
-    });
-    if (match) {
-      return match;
-    }
-    throw("Visualization not found");
-  } else {
-    return Keen.Visualization.visuals;
-  }
 };
 
 // Expose utils

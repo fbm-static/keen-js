@@ -28,6 +28,7 @@ module.exports = function(grunt) {
       all: {
         src: [
             "src/_intro.js"
+          , "src/utils/*"
           , "src/core.js"
           , "src/track.js"
           , "src/query.js"

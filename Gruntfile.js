@@ -45,6 +45,27 @@ module.exports = function(grunt) {
         dest: "dist/<%= pkg.name %>.js"
       },
 
+      // Build complete version
+      querying: {
+        src: [
+            "src/_intro.js"
+          , "src/core.js"
+          // , "src/track.js"
+          , "src/query.js"
+          // , "src/lib/base64.js"
+          , "src/lib/json2.js"
+          // , "src/lib/keen-dataform.js"
+          , "src/lib/keen-domready.js"
+          // , "src/lib/keen-spinner.js"
+          // , "src/visualize.js"
+          // , "src/plugins/keen-googlecharts.js"
+          // , "src/plugins/keen-widgets.js"
+          , "src/async.js"
+          , "src/_outro.js"
+        ],
+        dest: "dist/<%= pkg.name %>-querying.js"
+      },
+
       // Build tracking-only version
       tracker: {
         src: [
@@ -85,6 +106,7 @@ module.exports = function(grunt) {
       dist: {
         files: {
           "dist/<%= pkg.name %>.min.js": "dist/<%= pkg.name %>.js",
+          "dist/<%= pkg.name %>-querying.min.js": "dist/<%= pkg.name %>-querying.js",
           "dist/<%= pkg.name %>-tracker.min.js": "dist/<%= pkg.name %>-tracker.js",
           "dist/<%= pkg.name %>-loader.min.js": "dist/<%= pkg.name %>-loader.js"
         }
